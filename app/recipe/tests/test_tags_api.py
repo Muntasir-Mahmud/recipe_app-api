@@ -67,3 +67,21 @@ class PrivateTagsApiTests(TestCase):
         self.assertEqual(len(response.data), 1)
         # cheacked that response is only for authorised user
         self.assertEqual(response.data[0]['name'], tag.name)
+
+    def test_create_tag_successful(self):
+        '''Test creating a new tag'''
+        payload = {'name': 'Simple'}
+        self.client.post(TAGS_URL, payload)
+
+        exists = Tag.objects.filter(
+            user=self.user,
+            name=payload['name']
+        ).exists()
+        self.assertTrue(exists)
+
+    def test_create_tag_invalid(self):
+        '''Test creating a new tag with invalid payload'''
+        payload = {'name': ''}
+        response = self.client.post(TAGS_URL, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
