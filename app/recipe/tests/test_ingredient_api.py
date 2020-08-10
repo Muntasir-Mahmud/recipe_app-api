@@ -11,6 +11,7 @@ from recipe.serializers import IngredientSerializer
 
 
 INGREDIENTS_URL = reverse('recipe:ingredient-list')
+# reverse('app:url name')
 
 
 class PublicIngredientsApiTests(TestCase):
