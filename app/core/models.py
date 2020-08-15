@@ -88,6 +88,8 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField('Ingredient')
     tags = models.ManyToManyField('Tag')
     image = models.ImageField(null=True, upload_to=recipe_image_file_path)
+    # for detail info read
+    # https://docs.djangoproject.com/en/3.0/ref/models/fields/#django.db.models.FileField.upload_to
 
     def __str__(self):
         return self.title

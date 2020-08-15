@@ -1,3 +1,8 @@
+import tempfile  # this create dummy files
+import os
+
+from PIL import Image
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -12,6 +17,11 @@ from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 RECIPES_URL = reverse('recipe:recipe-list')
 # reverse('app:url name')
+
+
+def image_upload_url(recipe_id):
+    '''Return URL for recipe image upload'''
+    return reverse('recipe:recipe-upload-image', args=[recipe_id])
 
 
 def recipe_detail_url(recipe_id):
@@ -206,3 +216,42 @@ class PrivateRecipeApiTest(TestCase):
         # Here tags is 0 because payload has no tags
         # we cannot change partially in PUT
         # if we donot fill a field in put request it will set null
+
+
+class RecipeImageUploadsTests(TestCase):
+    '''tests for image uploads'''
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            'user@test.com',
+            'testpass'
+        )
+        self.client.force_authenticate(self.user)
+        self.recipe = sample_recipe(user=self.user)
+
+    def tearDown(self):
+        # this functioin will call as the last function
+        # of the class
+        self.recipe.image.delete()
+
+    def test_upload_image_to_recipe(self):
+        '''Test uploading image to recipe'''
+        url = image_upload_url(self.recipe.id)
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
+            img = Image.new('RGB', (10, 10))
+            img.save(ntf, format='JPEG')
+            ntf.seek(0)
+            res = self.client.post(url, {'image': ntf}, format='multipart')
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('image', res.data)
+        self.assertTrue(os.path.exists(self.recipe.image.path))
+
+    def test_upload_image_bad_request(self):
+        '''Test uploading an invalid image'''
+        url = image_upload_url(self.recipe.id)
+        res = self.client.post(url, {'image': 'notimage'}, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
