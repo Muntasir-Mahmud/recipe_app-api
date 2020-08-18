@@ -9,6 +9,8 @@ from core.models import Tag, Ingredient, Recipe
 
 from recipe import serializers
 
+from . pagination import CustomPagination
+
 
 # TO reduce code repeating we write this base viewset.
 # From where we will inherite our tags, ingredient viewsets
@@ -18,6 +20,7 @@ class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
     '''Base viewset for user owned recipe attributes like, tags, ingredients'''
     authentication_classes = (TokenAuthentication, )
     permission_classes = (IsAuthenticated, )
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         '''Return objects for current user'''
@@ -55,6 +58,7 @@ class RecipeViewset(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, )
+    pagination_class = CustomPagination
 
     def _params_to_ints(self, qs):
         '''Convert a list of string IDs to a list of integers'''
